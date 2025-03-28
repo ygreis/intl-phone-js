@@ -1,0 +1,34 @@
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Diretórios de build
+/dist
+/build
+/out
+
+# Dependências de pacotes
+node_modules/
+
+# Arquivos do sistema operacional
+*.swp
+*.swo
+
+# Excluir arquivos de teste
+*.test.js
+*.spec.js
+
+# Cache
+.cache/
+*.tmp
+
+# Arquivos compilados
+*.class
+*.o
+*.so
+
+# Imagens de disco
+*.iso
