@@ -2,12 +2,13 @@
   "name": "intl-phone-js",
   "version": "0.0.1",
   "description": "Library for masks and validations for international phone numbers.",
-  "main": "./src/index.js",
+  "main": "./src/index.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "compile": "rm -rf dist && tsc && webpack --config webpack.config.js",
+    "dev": "webpack serve --config webpack.config.js --mode development",
+    "build": "cross-env NODE_ENV=production webpack --config webpack.config.js --mode production",
     "test": "test"
   },
   "keywords": [
@@ -20,9 +21,21 @@
   "author": "Ygreis",
   "license": "MIT",
   "devDependencies": {
+    "copy-webpack-plugin": "^13.0.0",
+    "cross-env": "^7.0.3",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "mini-css-extract-plugin": "^2.9.2",
+    "nodemon": "^3.1.9",
+    "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.3.14",
+    "ts-loader": "^9.5.2",
     "typescript": "^5.8.2",
     "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
+  },
+  "dependencies": {
+    "flag-icons": "^7.3.2"
   }
 }
