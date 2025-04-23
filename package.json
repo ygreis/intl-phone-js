@@ -36,6 +36,7 @@
     "webpack-dev-server": "^5.2.1"
   },
   "dependencies": {
-    "flag-icons": "^7.3.2"
+    "flag-icons": "^7.3.2",
+    "imask": "^7.6.1"
   }
 }

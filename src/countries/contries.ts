@@ -2,7 +2,7 @@
  * @see https://github.com/ChristoPy/countries-phone-masks/tree/main
  */
 
-interface CountryPhone {
+export interface CountryPhone {
     name: string,
     code: string,
     iso: string,

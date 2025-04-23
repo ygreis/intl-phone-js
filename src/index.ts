@@ -1,5 +1,7 @@
-import countries from "./countries/contries";
+import countries, { CountryPhone } from "./countries/contries";
 import IntlPhoneMask from "./intl-phone-mask";
+import IMask from "../node_modules/imask/esm/imask";
+import { MaskedDynamic, MaskedPattern } from "../node_modules/imask/esm/index";
 
 class IntlPhoneJs {
   input: HTMLInputElement;
@@ -8,13 +10,15 @@ class IntlPhoneJs {
   dropdownContainer!: HTMLElement; // Container da busca e lista de bandeiras
   searchInput!: HTMLInputElement; // Campo de busca
   countryList!: HTMLUListElement; // Lista de países
+  country!: CountryPhone;
   currentFlag!: string; // ISO da bandeira atual
 
   constructor(el: HTMLInputElement, options?: IntlPhoneJsOptions) {
     this.input = el;
 
     // Definir a bandeira padrão (Brasil)
-    this.currentFlag = "br";
+    this.setCurrentFlag("br")
+    //this.currentFlag = "br";
 
     // Criar estrutura necessária
     this.appendWrapper();
@@ -25,9 +29,126 @@ class IntlPhoneJs {
     this.addInputEventListener();
   }
 
-  private setMask() {
-    new IntlPhoneMask(this.input, '+7 7## ### ## ##');
+  // Setter para currentFlag
+  setCurrentFlag(isoFlag: string) {
+    console.log(`set currentFlag, ${isoFlag}`)
+    if (this.currentFlag !== isoFlag) {
+      this.currentFlag = isoFlag;
+    }
+
+    const country = countries.find(country => country.iso === isoFlag.toUpperCase());
+    console.log(`setCurrentFlag country ${country}`)
+    if (country) {
+      this.setCountry(country)
+    }
   }
+
+  // Setter para country
+  setCountry(country: CountryPhone) {
+    if (this.country !== country) {
+      this.country = country; // Atualiza a variável privada corretamente
+      this.onFlagChange(country); // Chama a função automaticamente
+    }
+  }
+
+  // Função disparada quando a bandeira muda
+  private onFlagChange(country: CountryPhone): void {
+    console.log(`A bandeira foi alterada para: ${country.name}`);
+    // Aqui você pode adicionar mais lógica, como atualizar a máscara do input
+  }
+
+  private setMask() {
+    /*const country = countries.find(c => this.input.value.startsWith(c.code));
+    if (!country) return;*/
+
+    this.setFlagIcon(this.country.iso.toLowerCase()); // Atualiza a bandeira
+    this.setMaskInput()
+  }
+
+  private setMaskInput() {
+    let input = this.input;
+    const country = this.country
+    console.log(`setMaskInput country`, country)
+    const ddi = country.code; // DDI fixo
+    let matrixBase = Array.isArray(country.mask) ? country.mask[0] : country.mask; // Usa o primeiro formato se for um array
+    let onlyDDI = ddi.replace(/\D/g, ''); // DDI sem caracteres especiais
+
+    if(!input.value.length){
+      input.value = ddi
+
+    }
+
+    let value = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+
+    // Permite apagar completamente e deixa o campo livre para nova digitação
+    if (value.length < onlyDDI.length) {
+      input.value = ''; // Libera o campo se o usuário apagar tudo
+      return;
+    }
+
+    // Se houver múltiplos formatos de máscara, escolhe o mais adequado
+    if (Array.isArray(country.mask)) {
+      matrixBase = country.mask.find(m => m.replace(/\D/g, '').length >= value.length) || country.mask[0];
+    }
+
+    let maskedValue = matrixBase.replace(/#/g, 'X'); // Máscara dinâmica com 'X'
+    let i = 0;
+
+    // Atualiza a máscara conforme o usuário digita
+    input.value = `${ddi}${maskedValue}`.replace(/./g, char => {
+      if (/[\(\)\-\+\s]/.test(char) && i >= value.length) {
+        return ''; // Remove caracteres fixos quando não há números suficientes
+      } else if (/[\(\)\-\+\s]/.test(char)) {
+        return char; // Mantém caracteres fixos quando necessário
+      } else if (/[X\d]/.test(char) && i < value.length) {
+        return value.charAt(i++); // Substitui máscara pelos dígitos inseridos
+      } else {
+        return ''; // Remove os 'X' onde não há números preenchendo
+      }
+    });
+
+    // Garante que a máscara reapareça corretamente ao digitar novamente
+    if (!input.value) {
+      input.value = ''; // Libera totalmente o campo se apagado
+    }
+  }
+
+  /*private setMask() {
+    const country = countries.find(c => this.input.value.startsWith(c.code));
+    if (!country) return;
+
+    this.setFlagIcon(country.iso.toLowerCase()); // Atualiza a bandeira
+
+    // Configuração dinâmica de máscaras para IMask
+    const maskConfig = {
+      mask: Array.isArray(country.mask)
+        ? country.mask.map(mask => ({
+          mask: `${country.code} ${mask}`, // Configura o padrão para cada máscara
+        }))
+        : [{ mask: `${country.code} ${country.mask}` }], // Converte para array se necessário
+      dispatch: function (
+        appended: string, // Caractere digitado
+        dynamicMasked: MaskedDynamic<MaskedPattern> // Máscara dinâmica baseada em padrão
+      ) {
+        const value = (dynamicMasked.value + appended).replace(/\D/g, "");
+        return dynamicMasked.compiledMasks.find(m =>
+          typeof m.mask === "string" && value.startsWith(m.mask.split(' ')[0]) // Encontra máscara correta com base no DDI
+        );
+      },
+    };
+
+    console.log("IMask", IMask);
+    console.log("maskConfig", maskConfig);
+
+    // Remove máscaras anteriores e aplica a nova
+    if (this.input.imaskInstance) {
+      this.input.imaskInstance.destroy(); // Remove máscara antiga para evitar conflitos
+    }
+
+    IMask(this.input, maskConfig); // Aplica a nova máscara e salva a instância
+  }*/
+
+
 
   private appendWrapper() {
     const wrapperDiv = document.createElement('div');
@@ -181,7 +302,8 @@ class IntlPhoneJs {
   }
 
   private selectCountry(iso: string) {
-    this.currentFlag = iso; // Atualizar a bandeira atual
+    console.log(`selectCountry flag: ${iso}`)
+    this.setCurrentFlag(iso)
     this.setFlagIcon(iso); // Alterar bandeira conforme país selecionado
     this.hideDropdownContainer(); // Esconder lista após seleção
   }
@@ -198,17 +320,17 @@ class IntlPhoneJs {
     this.input.addEventListener('input', () => {
       const value = this.input.value.trim();
 
-      // Encontrar o primeiro país correspondente ao código digitado
-      const matchingCountry = countries.find((country) =>
-        value.startsWith(country.code)
-      );
-        
+      // Encontrar país correspondente ao código digitado
+      const matchingCountry = countries.find((country) => value.startsWith(country.code));
+
       if (matchingCountry) {
-        this.setFlagIcon(matchingCountry.iso.toLowerCase());
+        this.setFlagIcon(matchingCountry.iso.toLowerCase()); // Atualiza bandeira
+        this.setMask(); // Atualiza máscara
       }
     });
   }
 }
+
 
 // Adicionar o método ao protótipo do HTMLInputElement
 HTMLInputElement.prototype.applyIntlPhoneJs = function (options?: IntlPhoneJsOptions) {

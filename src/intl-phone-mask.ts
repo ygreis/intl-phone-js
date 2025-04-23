@@ -1,54 +1,49 @@
 export default class IntlPhoneMask {
   input: HTMLInputElement;
   mask!: string | string[];
-  matrix: string = '+###############';
+  matrix: string = '';
+  countryCode: string = '';
 
-  constructor(el: HTMLInputElement, maskList: string | string[]) {
+  constructor(el: HTMLInputElement, maskList: string | string[], countryCode: string) {
     this.input = el;
-    this.setMaskList(maskList)
-
+    this.countryCode = countryCode;
+    this.setMaskList(maskList);
     this.addListeners();
   }
 
   setMaskList(maskList: string | string[]) {
     this.mask = maskList;
-    this.input.value = '+'
+    this.input.value = this.countryCode; // Mantém o DDI fixo
   }
 
   private addListeners() {
-    if (!this.input.value) this.input.value = '+';
-    this.input.addEventListener('input', this.setMask.bind(this));
-    this.input.addEventListener('focus', this.setMask.bind(this));
-    this.input.addEventListener('blur', this.setMask.bind(this));
+    if (!this.input.value) this.input.value = this.countryCode;
+    this.input.addEventListener('input', this.applyMask.bind(this));
   }
 
-  private setMask() {
-    // Processar se a máscara for uma string ou um array
-    if (typeof this.mask === 'string') {
-      this.formatMask(this.mask);
-    } else {
-      this.mask.forEach((item) => {
-        this.formatMask(item);
-      });
-    }
+  private applyMask() {
+    const cursorPos = this.input.selectionStart || 0;
+    const val = this.input.value.replace(/\D/g, '').replace(this.countryCode.replace(/\D/g, ''), ''); // Remove caracteres não numéricos, mantendo DDI
+
+    // **Seleciona a máscara correta**
+    let selectedMask: string = Array.isArray(this.mask) ? this.mask[0] : this.mask;
+    this.matrix = `${this.countryCode} ${selectedMask}`;
 
     let i = 0;
-    const val = this.input.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+    let formattedValue = this.countryCode; // Mantém o DDI fixo
 
-    // Aplica a matriz formatada ao valor
-    this.input.value = this.matrix.replace(/(?!\+)./g, function (a) {
-      return /[#\d]/.test(a) && i < val.length ? val.charAt(i++) : i >= val.length ? '' : a;
-    });
-  }
+    for (const char of selectedMask) {
+      if (char === '#') {
+        formattedValue += i < val.length ? val.charAt(i++) : '_';
+      } else {
+        formattedValue += char; // Mantém caracteres especiais
+      }
+    }
 
-  private formatMask(mask: string) {
-    // Remove parênteses `()` durante o processamento do código e do telefone
-    const code = mask.replace(/[\s#()]/g, ''); // Removendo `()` além de `#` e espaços
-    const phone = this.input.value.replace(/[\s#-)(]/g, ''); // Removendo parênteses no telefone também
-
-    if (phone.includes(code)) {
-      console.log(phone, code);
-      this.matrix = mask; // Atualiza a matriz com a máscara correspondente
+    // **Atualiza o input sem sobrescrever números já digitados**
+    if (this.input.value.length < formattedValue.length || cursorPos === this.input.value.length) {
+      this.input.value = formattedValue;
+      this.input.setSelectionRange(cursorPos, cursorPos);
     }
   }
 }
