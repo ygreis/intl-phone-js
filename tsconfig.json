@@ -1,12 +1,22 @@
 {
-    "compilerOptions": {
-      "target": "es5", // Para compatibilidade com navegadores
-      "module": "ES6", // Garante a exportação no formato ES6
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true
-    },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "target": "es5",
+    "module": "ES6",
+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "moduleResolution": "node",
+    "lib": ["DOM", "ES2015"],
+
+    "declaration": true,
+    "outDir": "dist",
+    "sourceMap": true,
+
+    "types": []
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

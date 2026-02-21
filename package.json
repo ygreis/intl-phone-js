@@ -21,12 +21,18 @@
   "author": "Ygreis",
   "license": "MIT",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
     "copy-webpack-plugin": "^13.0.0",
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
+    "eslint": "^10.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.2",
     "nodemon": "^3.1.9",
+    "prettier": "^3.8.1",
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.3.14",
     "ts-loader": "^9.5.2",
@@ -37,6 +43,7 @@
   },
   "dependencies": {
     "flag-icons": "^7.3.2",
-    "imask": "^7.6.1"
+    "imask": "^7.6.1",
+    "libphonenumber-js": "^1.12.37"
   }
 }
