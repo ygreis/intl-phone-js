@@ -1,13 +1,7 @@
 // src/ui/IntlPhone.ts
 import { normalizeDigits } from "../core/normalize";
-import {
-  countDigitsBeforeCursor,
-  findCursorPositionByDigitIndex,
-} from "../core/cursor";
-import { processPhoneInput } from "../core/phoneEngine";
 import { AsYouType, CountryCode } from "libphonenumber-js";
-import getPossibleLengthsForCountry from "libphonenumber-js/core";
-import metadata from "libphonenumber-js/metadata.full.json";
+import { processPhoneInput } from "../core/phoneEngine";
 
 export class IntlPhone {
   private input: HTMLInputElement;
@@ -15,12 +9,7 @@ export class IntlPhone {
   private wrapper!: HTMLDivElement;
   private flagButton!: HTMLButtonElement;
 
-  private isCountryLocked = false;
-  private lockedCountry?: CountryCode;
   private lastFormattedValue = "";
-  private lastDigits = "";
-  private maxNationalDigits: number | null = null;
-  private currentCountry: CountryCode | null = null;
 
   constructor(input: HTMLInputElement) {
     this.input = input;
@@ -51,46 +40,21 @@ export class IntlPhone {
     this.wrapper.appendChild(this.flagButton);
   }
 
-  private lastAcceptedDigits = "";
-  private lastTemplate = "";
-
-  private computeMaxDigitsForCountry(country: CountryCode) {
-    const formatter = new AsYouType(country);
-    formatter.input(""); // importante: estado limpo
-    const template = formatter.getTemplate() ?? "";
-
-    // conta quantos slots existem
-    const slots = template.match(/_/g)?.length ?? 0;
-
-    this.maxNationalDigits = slots;
-    this.currentCountry = country;
-  }
-
-  private lastValidValue = "";
-  private lastValidDigits = "";
-
-  private lastValidDigitsCount = 0;
-
-  private lastStructuredFormatted = "";
-
-  private lastValidFormatted = "";
-
-  private formatter = new AsYouType();
-  private maxDigits: number | null = null;
-
   private bindInputEvents() {
-    this.input.addEventListener("input", (event) => {
-      const target = event.target as HTMLInputElement;
+    this.input.addEventListener("input", () => {
+      const target = this.input;
       const rawValue = target.value;
-      const cursorPos = target.selectionStart ?? rawValue.length;
+
+      console.log("rawValue:", rawValue);
 
       const digits = normalizeDigits(rawValue);
+      console.log("digits:", digits);
 
       // reset total
       if (!digits) {
+        console.log("RESET");
         this.reset();
-        this.lastValidValue = "";
-        this.lastValidDigits = "";
+        this.lastFormattedValue = "";
         return;
       }
 
@@ -99,66 +63,61 @@ export class IntlPhone {
        */
       const result = processPhoneInput(`+${digits}`);
 
+      console.log("formatted:", result.formatted);
+      console.log("lastFormatted:", this.lastFormattedValue);
+
       /**
-       * 🚨 REGRA DE BLOQUEIO REAL
-       * Se o novo estado NÃO é possível
-       * mas o anterior era,
-       * então passou do limite da máscara.
+       * Conta caracteres de formatação
        */
-      const invalidOverflow =
-        this.lastValidValue && result.number && !result.number.isPossible();
+      const formattingCount = (value: string) =>
+        value.replace(/\d/g, "").length;
 
-      if (invalidOverflow) {
-        // 🔥 rollback imediato (padrão de libs maduras)
-        target.value = this.lastValidValue;
+      const prevFormatting = formattingCount(this.lastFormattedValue);
+      const currFormatting = formattingCount(result.formatted);
 
-        // restaura cursor no final
-        requestAnimationFrame(() => {
-          target.setSelectionRange(
-            this.lastValidValue.length,
-            this.lastValidValue.length,
-          );
-        });
+      console.log("formatting chars:", currFormatting, "prev:", prevFormatting);
 
+      /**
+       * 🚨 BLOQUEIO REAL
+       * Se perdeu formatação, estourou a máscara
+       */
+      if (this.lastFormattedValue && currFormatting < prevFormatting) {
+        console.log("OVERFLOW → remove último dígito");
+
+        const trimmedDigits = digits.slice(0, -1);
+        const retry = processPhoneInput(`+${trimmedDigits}`);
+
+        target.value = retry.formatted;
+        this.lastFormattedValue = retry.formatted;
         return;
       }
 
       /**
-       * Aplica valor formatado válido
+       * Aplica valor normalmente
        */
       target.value = result.formatted;
+      this.lastFormattedValue = result.formatted;
 
-      // salva estado válido
-      if (result.number?.isPossible()) {
-        this.lastValidValue = result.formatted;
-        this.lastValidDigits = digits;
-      }
-
-      // bandeira automática
       if (result.country) {
+        console.log("country:", result.country);
         this.updateFlag(result.country.toLowerCase());
       }
-
-      /**
-       * Cursor estável (caso normal)
-       */
-      const digitsBeforeCursor = countDigitsBeforeCursor(rawValue, cursorPos);
-
-      const newCursorPos = findCursorPositionByDigitIndex(
-        target.value,
-        digitsBeforeCursor,
-      );
-
-      requestAnimationFrame(() => {
-        target.setSelectionRange(newCursorPos, newCursorPos);
-      });
     });
   }
 
-  public setCountryManually(country: CountryCode) {
-    this.isCountryLocked = true;
-    this.lockedCountry = country;
+  private countNationalDigits(formatted: string, callingCode?: string): number {
+    if (!callingCode) return 0;
 
+    const withoutPlus = formatted.replace(/^\+/, "");
+
+    if (!withoutPlus.startsWith(callingCode)) return 0;
+
+    const nationalPart = withoutPlus.slice(callingCode.length);
+
+    return nationalPart.replace(/\D/g, "").length;
+  }
+
+  public setCountryManually(country: CountryCode) {
     this.input.value = "";
     this.input.focus();
   }
@@ -170,8 +129,6 @@ export class IntlPhone {
   }
 
   public reset() {
-    this.isCountryLocked = false;
-    this.lockedCountry = undefined;
     this.input.value = "";
     this.flagButton.innerHTML = "";
   }
