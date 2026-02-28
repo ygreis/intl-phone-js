@@ -9,6 +9,7 @@ Thumbs.db
 /dist
 /build
 /out
+/coverage
 
 # Dependências de pacotes
 node_modules/
