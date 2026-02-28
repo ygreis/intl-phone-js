@@ -6,7 +6,7 @@
   "author": "Ygreis",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ygreis/intl-phone-js.git"
+    "url": "git+https://github.com/Ygreis/intl-phone-js.git"
   },
   "homepage": "https://github.com/Ygreis/intl-phone-js#readme",
   "bugs": {
