@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-          always-auth: true
+          always-auth: false
+
+      - run: rm -f .npmrc
 
       - run: npm ci
       - run: npm run test
