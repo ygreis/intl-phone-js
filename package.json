@@ -1,16 +1,16 @@
 {
   "name": "intl-phone-js",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Headless international phone input engine with smart masking, validation and country auto-detection powered by libphonenumber-js.",
   "license": "MIT",
-  "author": "Ygreis",
+  "author": "ygreis",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ygreis/intl-phone-js.git"
+    "url": "git+https://github.com/ygreis/intl-phone-js.git"
   },
-  "homepage": "https://github.com/Ygreis/intl-phone-js#readme",
+  "homepage": "https://github.com/ygreis/intl-phone-js#readme",
   "bugs": {
-    "url": "https://github.com/Ygreis/intl-phone-js/issues"
+    "url": "https://github.com/ygreis/intl-phone-js/issues"
   },
   "type": "module",
   "main": "./dist/index.js",
