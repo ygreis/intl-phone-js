@@ -1,22 +1,26 @@
 # intl-phone-js
 
-Headless international phone input engine with smart masking, validation
-and country auto-detection powered by **libphonenumber-js**.
+Headless international phone input engine with smart masking,
+validation\
+and automatic country detection powered by **libphonenumber-js**.
 
-Lightweight, framework-agnostic and ready to integrate with vanilla JS,
-React, Vue or any UI layer.
+Lightweight, framework-agnostic and built for modern web applications.
 
 ---
 
 ## ✨ Features
 
-- 🌍 International phone support
-- 🧠 Automatic country detection
-- 🎭 Smart formatting (AsYouType)
-- 🔒 Overflow protection (prevents invalid growth)
-- 📡 Change / validity / country events
+- 🌍 International phone support (`+DDI` first approach)
+- 🧠 Automatic country detection while typing
+- 🎭 Smart formatting via `AsYouType`
+- 🔒 Structural overflow protection
+- 📡 Rich event system (`change`, `countryChange`, `validityChange`,
+  `blur`)
+- ⚙️ Runtime configuration (`setOptions`)
+- 🎯 Programmatic control (`setValue`, `setCountry`)
 - 🧩 Headless architecture (bring your own UI)
-- 🧪 Fully tested with coverage
+- 🧪 Fully unit tested with high coverage
+- 🪶 Zero UI dependencies
 
 ---
 
@@ -53,33 +57,80 @@ phone.on("change", (state) => {
 <input id="phone" type="text" />
 ```
 
-As the user types:
+Typing:
 
     5511999999999
 
-It automatically becomes:
+Automatically becomes:
 
     +55 11 99999-9999
 
+The engine always normalizes internally to international format.
+
 ---
 
-## 📡 Available Events
+# ⚙️ Configuration
+
+```ts
+const phone = new IntlPhone(input, {
+  allowedCountries: ["BR", "US"],
+  value: "+5511999999999",
+});
+```
+
+Or dynamically:
+
+```ts
+phone.setOptions({
+  allowedCountries: ["US"],
+});
+```
+
+Retrieve current options:
+
+```ts
+phone.getOptions();
+```
+
+---
+
+# 📡 Available Events
 
 Event Description
 
 ---
 
-`change` Fires on every valid update
+`change` Fires on every valid structural update
 `countryChange` Fires when detected country changes
 `validityChange` Fires when number becomes valid/invalid
+`blur` Fires when input loses focus
 
 ---
 
-## 🔧 Public API
+# 🧠 Validation
+
+```ts
+phone.isValid();
+phone.getValidationReason();
+```
+
+### ValidationReason
+
+    EMPTY
+    INVALID_COUNTRY
+    TOO_SHORT
+    TOO_LONG
+    NOT_POSSIBLE
+    VALID
+
+No opinionated error messages are included ---\
+the UI layer decides how to present validation.
+
+---
+
+# 🔧 Public API
 
 ### getState()
-
-Returns the full phone state:
 
 ```ts
 {
@@ -94,37 +145,27 @@ Returns the full phone state:
 }
 ```
 
-### getCountry()
+### setValue(value)
 
 ```ts
-phone.getCountry();
-```
-
-### isValid()
-
-```ts
-phone.isValid();
-```
-
-### getE164()
-
-```ts
-phone.getE164();
+phone.setValue("+14155552671");
 ```
 
 ### setCountry(countryCode)
-
-Programmatically set country (ISO code):
 
 ```ts
 phone.setCountry("BR");
 ```
 
-This automatically inserts the correct calling code.
+### setOptions(options)
+
+```ts
+phone.setOptions({
+  allowedCountries: ["BR", "CA"],
+});
+```
 
 ### destroy()
-
-Removes event listeners.
 
 ```ts
 phone.destroy();
@@ -132,53 +173,35 @@ phone.destroy();
 
 ---
 
-## 🛡 Overflow Protection
+# 🔒 Overflow Protection
 
-The library prevents invalid structural growth.
-
-Example:
-
-    +549112345678912345
-
-Will automatically block extra digits once the number becomes
+The engine prevents invalid structural growth once the number becomes
 impossible.
 
 ---
 
-## 🧩 Headless Architecture
+# 🧩 Headless Philosophy
 
-This library does not provide:
+This library intentionally does **not** provide:
 
 - UI components
 - Dropdowns
-- Flags
+- Flag icons
+- Styling
 
-It is intentionally headless so you can:
-
-- Build your own dropdown
-- Integrate with React/Vue/Svelte
-- Use it in design systems
+You are free to integrate it into any UI layer.
 
 ---
 
-## 🧪 Testing & Reliability
+# 🧪 Testing & Reliability
 
-- Built with TypeScript
-- Fully unit tested
-- Branch coverage validated
+- Written in TypeScript
+- High test coverage
 - Powered by official libphonenumber metadata
+- Compatible with modern browsers (2018+)
 
 ---
 
-## 🔮 Roadmap
-
-- React adapter
-- Country dropdown module
-- Flag icon support
-- Metadata customization (lite build)
-
----
-
-## 📜 License
+# 📜 License
 
 MIT
