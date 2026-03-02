@@ -12,14 +12,23 @@ interface IntlPhoneEvents {
   validityChange: boolean;
 }
 
+interface IntlPhoneOptions {
+  allowedCountries?: CountryCode[];
+}
+
 export class IntlPhone {
   private input: HTMLInputElement;
   private state: PhoneState;
   private events = new EventEmitter<IntlPhoneEvents>();
+  private allowedCountriesSet?: Set<CountryCode>;
 
-  constructor(input: HTMLInputElement) {
+  constructor(input: HTMLInputElement, options?: IntlPhoneOptions) {
     this.input = input;
     this.state = createInitialPhoneState();
+
+    if (options?.allowedCountries?.length) {
+      this.allowedCountriesSet = new Set(options.allowedCountries);
+    }
 
     this.bindInput();
   }
@@ -55,6 +64,14 @@ export class IntlPhone {
     const newDigitsCount = digits.length;
 
     const numberGrew = newDigitsCount > prevDigitsCount;
+
+    if (
+      this.allowedCountriesSet &&
+      result.country &&
+      !this.allowedCountriesSet.has(result.country)
+    ) {
+      result.isValid = false;
+    }
 
     // 🔒 1️⃣ Bloqueio por perda de formatação
     if (numberGrew && prevState.formatted && currFormatting < prevFormatting) {
