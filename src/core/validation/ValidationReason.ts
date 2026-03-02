@@ -1,0 +1,8 @@
+export enum ValidationReason {
+  EMPTY = "EMPTY",
+  INVALID_COUNTRY = "INVALID_COUNTRY",
+  TOO_SHORT = "TOO_SHORT",
+  TOO_LONG = "TOO_LONG",
+  NOT_POSSIBLE = "NOT_POSSIBLE",
+  VALID = "VALID",
+}

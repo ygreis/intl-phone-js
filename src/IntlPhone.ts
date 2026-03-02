@@ -5,52 +5,118 @@ import { EventEmitter } from "@/core";
 import { CountryCode } from "libphonenumber-js";
 import { getCountryCallingCode } from "libphonenumber-js/core";
 import metadata from "libphonenumber-js/metadata.min.json";
+import { ValidationReason } from "./core/validation/ValidationReason";
 
 interface IntlPhoneEvents {
   change: PhoneState;
   countryChange: CountryCode | null;
   validityChange: boolean;
+  blur: PhoneState;
 }
 
-interface IntlPhoneOptions {
+export interface IntlPhoneOptions {
   allowedCountries?: CountryCode[];
+  value?: string;
 }
 
 export class IntlPhone {
   private input: HTMLInputElement;
   private state: PhoneState;
   private events = new EventEmitter<IntlPhoneEvents>();
+
+  private options: IntlPhoneOptions = {};
   private allowedCountriesSet?: Set<CountryCode>;
 
-  constructor(input: HTMLInputElement, options?: IntlPhoneOptions) {
+  private inputHandler = () => {
+    this.update(this.input.value);
+  };
+
+  private blurHandler = () => {
+    this.events.emit("blur", this.state);
+  };
+
+  constructor(input: HTMLInputElement, options: IntlPhoneOptions = {}) {
     this.input = input;
     this.state = createInitialPhoneState();
 
-    if (options?.allowedCountries?.length) {
-      this.allowedCountriesSet = new Set(options.allowedCountries);
+    this.bindInput();
+    this.bindBlur();
+
+    this.setOptions(options, false); // do not auto-update yet
+
+    if (this.options.value) {
+      this.setValue(this.options.value);
+    } else {
+      this.update(this.input.value);
+    }
+  }
+
+  /* ========= CONFIG MANAGEMENT ========= */
+
+  public setOptions(options: IntlPhoneOptions, reprocess = true) {
+    this.options = { ...this.options, ...options };
+
+    if (this.options.allowedCountries?.length) {
+      this.allowedCountriesSet = new Set(this.options.allowedCountries);
+    } else {
+      this.allowedCountriesSet = undefined;
     }
 
-    this.bindInput();
+    if (reprocess) {
+      this.update(this.input.value);
+    }
   }
+
+  public getOptions(): IntlPhoneOptions {
+    return { ...this.options };
+  }
+
+  /* ========= INPUT BINDING ========= */
 
   private bindInput() {
-    this.input.addEventListener("input", () => {
-      this.update(this.input.value);
-    });
+    this.input.addEventListener("input", this.inputHandler);
   }
 
+  private bindBlur() {
+    this.input.addEventListener("blur", this.blurHandler);
+  }
+
+  /* ========= CORE UPDATE ========= */
+
   private update(rawValue: string) {
-    const digits = rawValue.replace(/\D/g, "");
+    const trimmed = rawValue.trim();
+    const digits = trimmed.replace(/\D/g, "");
+
+    const prevState = this.state;
 
     if (!digits) {
       this.state = createInitialPhoneState();
       this.input.value = "";
+
+      this.events.emit("change", this.state);
+
+      if (prevState.country !== null) {
+        this.events.emit("countryChange", null);
+      }
+
+      if (prevState.isValid !== false) {
+        this.events.emit("validityChange", false);
+      }
+
       return;
     }
 
     const normalized = `+${digits}`;
     const result = processPhoneInput(normalized);
-    const prevState = this.state;
+
+    // Apply allowedCountries restriction
+    if (
+      this.allowedCountriesSet &&
+      result.country &&
+      !this.allowedCountriesSet.has(result.country)
+    ) {
+      result.isValid = false;
+    }
 
     const formattingCount = (value: string) => value.replace(/\d/g, "").length;
 
@@ -62,28 +128,15 @@ export class IntlPhone {
       : 0;
 
     const newDigitsCount = digits.length;
-
     const numberGrew = newDigitsCount > prevDigitsCount;
 
-    if (
-      this.allowedCountriesSet &&
-      result.country &&
-      !this.allowedCountriesSet.has(result.country)
-    ) {
-      result.isValid = false;
-    }
-
-    // 🔒 1️⃣ Bloqueio por perda de formatação
+    // 🔒 Block formatting regression
     if (numberGrew && prevState.formatted && currFormatting < prevFormatting) {
       this.input.value = prevState.formatted;
       return;
     }
 
-    // 🔒 2️⃣ Bloqueio apenas se:
-    // - número cresceu
-    // - país já estava detectado antes
-    // - antes era possível
-    // - agora ficou impossível
+    // 🔒 Block impossible transition
     if (
       numberGrew &&
       prevState.country !== null &&
@@ -94,7 +147,7 @@ export class IntlPhone {
       return;
     }
 
-    // ✅ Atualiza normalmente
+    // ✅ Update state
     this.state = result;
     this.input.value = result.formatted;
 
@@ -130,12 +183,57 @@ export class IntlPhone {
     return this.state.e164;
   }
 
+  public getValidationReason(): ValidationReason {
+    if (!this.state.rawInput) {
+      return ValidationReason.EMPTY;
+    }
+
+    if (this.allowedCountriesSet && this.state.country) {
+      if (!this.allowedCountriesSet.has(this.state.country)) {
+        return ValidationReason.INVALID_COUNTRY;
+      }
+    }
+
+    if (!this.state.isPossible) {
+      return ValidationReason.NOT_POSSIBLE;
+    }
+
+    if (!this.state.isValid) {
+      const nationalLength = this.state.nationalNumber?.length ?? 0;
+
+      if (nationalLength < 4) {
+        return ValidationReason.TOO_SHORT;
+      }
+
+      if (nationalLength > 15) {
+        return ValidationReason.TOO_LONG;
+      }
+
+      return ValidationReason.NOT_POSSIBLE;
+    }
+
+    return ValidationReason.VALID;
+  }
+
   public setCountry(country: CountryCode) {
     const callingCode = getCountryCallingCode(country, metadata);
     this.update(`+${callingCode}`);
   }
 
+  public setValue(value: string) {
+    const digits = value.replace(/\D/g, "");
+
+    if (!digits) {
+      this.update("");
+      return;
+    }
+
+    const normalized = `+${digits}`;
+    this.update(normalized);
+  }
+
   public destroy() {
-    this.input.removeEventListener("input", () => {});
+    this.input.removeEventListener("input", this.inputHandler);
+    this.input.removeEventListener("blur", this.blurHandler);
   }
 }
