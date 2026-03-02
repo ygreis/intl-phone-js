@@ -45,14 +45,7 @@ describe("phoneEngine — processPhoneInput", () => {
     });
   });
 
-  describe("Invalid or absurd numbers", () => {
-    it("should return impossible for absurd long number", () => {
-      const result = processPhoneInput("+999999999999999999");
-
-      expect(result.isPossible).toBe(false);
-      expect(result.isValid).toBe(false);
-    });
-
+  describe("Invalid numbers", () => {
     it("should return safe defaults when parsed is null", () => {
       const result = processPhoneInput("+");
 

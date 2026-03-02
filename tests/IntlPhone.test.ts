@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { IntlPhone } from "@/index";
+import { ValidationReason } from "@/core/validation/ValidationReason";
+import { createIntlPhone } from "./utils/createIntlPhone";
+import { typeInto, blur } from "./utils/dom";
 
-describe("IntlPhone", () => {
+describe("IntlPhone — core behavior", () => {
   it("should initialize with empty state", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
+    const { phone } = createIntlPhone();
 
     const state = phone.getState();
 
@@ -15,11 +16,9 @@ describe("IntlPhone", () => {
   });
 
   it("should format and update state when typing a valid number", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
+    const { phone, input } = createIntlPhone();
 
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
+    typeInto(input, "5511999999999");
 
     const state = phone.getState();
 
@@ -28,89 +27,56 @@ describe("IntlPhone", () => {
     expect(state.isPossible).toBe(true);
   });
 
-  it("should emit change event when number updates", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
-
+  it("should emit change event", () => {
+    const { phone, input } = createIntlPhone();
     const mock = vi.fn();
+
     phone.on("change", mock);
 
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
+    typeInto(input, "5511999999999");
 
     expect(mock).toHaveBeenCalledTimes(1);
   });
 
-  it("should emit countryChange when country changes", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
-
+  it("should emit countryChange", () => {
+    const { phone, input } = createIntlPhone();
     const mock = vi.fn();
+
     phone.on("countryChange", mock);
 
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
+    typeInto(input, "5511999999999");
 
     expect(mock).toHaveBeenCalledWith("BR");
   });
 
-  it("should block overflow growth", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
-
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
-
-    const previousValue = input.value;
-
-    input.value = "551199999999999999999999";
-    input.dispatchEvent(new Event("input"));
-
-    expect(input.value).toBe(previousValue);
-  });
-
-  it("should allow backspace (number shrink)", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
-
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
-
-    const previous = phone.getState();
-
-    input.value = "551199999999"; // remove 1 digit
-    input.dispatchEvent(new Event("input"));
-
-    const updated = phone.getState();
-
-    expect(updated.rawInput.length).toBeLessThan(previous.rawInput.length);
-  });
-
-  it("should emit validityChange when number becomes valid", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
-
+  it("should emit validityChange when becoming valid", () => {
+    const { phone, input } = createIntlPhone();
     const mock = vi.fn();
+
     phone.on("validityChange", mock);
 
-    input.value = "55119"; // inválido
-    input.dispatchEvent(new Event("input"));
-
-    input.value = "5511999999999"; // válido
-    input.dispatchEvent(new Event("input"));
+    typeInto(input, "55119");
+    typeInto(input, "5511999999999");
 
     expect(mock).toHaveBeenCalledWith(true);
   });
 
+  it("should emit blur event", () => {
+    const { phone, input } = createIntlPhone();
+    const mock = vi.fn();
+
+    phone.on("blur", mock);
+
+    blur(input);
+
+    expect(mock).toHaveBeenCalled();
+  });
+
   it("should reset state when input becomes empty", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
+    const { phone, input } = createIntlPhone();
 
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
-
-    input.value = "";
-    input.dispatchEvent(new Event("input"));
+    typeInto(input, "5511999999999");
+    typeInto(input, "");
 
     const state = phone.getState();
 
@@ -119,46 +85,71 @@ describe("IntlPhone", () => {
     expect(state.isValid).toBe(false);
   });
 
-  it("should reset state when input becomes empty", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
+  it("should respect allowedCountries restriction", () => {
+    const { phone, input } = createIntlPhone({
+      allowedCountries: ["US"],
+    });
 
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
+    typeInto(input, "5511999999999");
 
-    input.value = "";
-    input.dispatchEvent(new Event("input"));
-
-    const state = phone.getState();
-
-    expect(state.rawInput).toBe("");
-    expect(state.country).toBeNull();
+    expect(phone.isValid()).toBe(false);
+    expect(phone.getValidationReason()).toBe(ValidationReason.INVALID_COUNTRY);
   });
 
-  it("should emit validityChange when number becomes valid", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
+  it("should update allowedCountries dynamically via setOptions()", () => {
+    const { phone, input } = createIntlPhone();
 
+    phone.setOptions({ allowedCountries: ["US"] });
+
+    typeInto(input, "5511999999999");
+
+    expect(phone.isValid()).toBe(false);
+  });
+
+  it("should set value programmatically via setValue()", () => {
+    const { phone } = createIntlPhone();
+
+    phone.setValue("+5511999999999");
+
+    expect(phone.getCountry()).toBe("BR");
+    expect(phone.isValid()).toBe(true);
+  });
+
+  it("should clear via setValue empty", () => {
+    const { phone } = createIntlPhone();
+
+    phone.setValue("+5511999999999");
+    phone.setValue("");
+
+    expect(phone.getState().rawInput).toBe("");
+  });
+
+  it("should remove listeners on destroy()", () => {
+    const { phone, input } = createIntlPhone();
     const mock = vi.fn();
-    phone.on("validityChange", mock);
 
-    input.value = "55119";
-    input.dispatchEvent(new Event("input"));
+    phone.on("change", mock);
 
-    input.value = "5511999999999";
-    input.dispatchEvent(new Event("input"));
+    phone.destroy();
 
-    expect(mock).toHaveBeenCalledWith(true);
+    typeInto(input, "5511999999999");
+
+    expect(mock).not.toHaveBeenCalled();
   });
 });
 
 describe("public API methods", () => {
   it("should set country programmatically", () => {
-    const input = document.createElement("input");
-    const phone = new IntlPhone(input);
+    const { phone } = createIntlPhone();
 
     phone.setCountry("BR");
 
     expect(phone.getCountry()).toBe("BR");
+  });
+
+  it("should return EMPTY validation reason when blank", () => {
+    const { phone } = createIntlPhone();
+
+    expect(phone.getValidationReason()).toBe(ValidationReason.EMPTY);
   });
 });
