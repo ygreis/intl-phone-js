@@ -1,4 +1,4 @@
-import { IntlPhone } from "https://esm.sh/intl-phone-js@0.1.12";
+import { IntlPhone } from "https://esm.sh/@intl-phone-js/core@latest";
 
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.querySelector("#intl-phone-js");

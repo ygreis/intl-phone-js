@@ -27,7 +27,7 @@ Lightweight, framework-agnostic and built for modern web applications.
 ## 📦 Installation
 
 ```bash
-npm install intl-phone-js
+npm install @intl-phone-js/core
 ```
 
 ---
