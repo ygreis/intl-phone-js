@@ -27,6 +27,7 @@ export function processPhoneInput(rawValue: string): PhoneState {
   return {
     rawInput: rawValue,
     formatted,
+    value: formatted,
     country,
     callingCode,
     nationalNumber,

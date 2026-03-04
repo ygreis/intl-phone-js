@@ -3,6 +3,7 @@ import { CountryCode } from "libphonenumber-js";
 export interface PhoneState {
   rawInput: string;
   formatted: string;
+  value: string;
   country: CountryCode | null;
   callingCode: string | null;
   nationalNumber: string | null;

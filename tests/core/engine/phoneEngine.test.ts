@@ -10,6 +10,7 @@ describe("phoneEngine — processPhoneInput", () => {
       expect(result.isValid).toBe(true);
       expect(result.isPossible).toBe(true);
       expect(result.e164).toBe("+5511999999999");
+      expect(result.value).toBe(result.formatted);
     });
 
     it("should return consistent state structure", () => {
@@ -18,6 +19,7 @@ describe("phoneEngine — processPhoneInput", () => {
       expect(result).toMatchObject({
         rawInput: expect.any(String),
         formatted: expect.any(String),
+        value: expect.any(String),
         country: expect.any(String),
         callingCode: expect.any(String),
         nationalNumber: expect.any(String),
@@ -56,5 +58,12 @@ describe("phoneEngine — processPhoneInput", () => {
       expect(result.isPossible).toBe(false);
       expect(result.isValid).toBe(false);
     });
+  });
+
+  it("should mark number as not valid and not possible", () => {
+    const result = processPhoneInput("+551199");
+
+    expect(result.isPossible).toBe(false);
+    expect(result.isValid).toBe(false);
   });
 });

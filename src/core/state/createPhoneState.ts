@@ -4,6 +4,7 @@ export function createInitialPhoneState(): PhoneState {
   return {
     rawInput: "",
     formatted: "",
+    value: "",
     country: null,
     callingCode: null,
     nationalNumber: null,

@@ -16,6 +16,8 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "unpkg": "./dist/index.global.min.js",
+  "jsdelivr": "./dist/index.global.min.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -36,7 +38,7 @@
   "scripts": {
     "dev": "webpack serve --config webpack.playground.cjs",
     "build:playground": "webpack --config webpack.playground.js",
-    "build": "tsup src/index.ts --format esm,cjs --dts --minify",
+    "build": "tsup",
     "build:watch": "tsup src/index.ts --format esm,cjs --dts --watch",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"

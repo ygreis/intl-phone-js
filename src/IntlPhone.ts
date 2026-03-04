@@ -1,16 +1,17 @@
 import { processPhoneInput } from "@/core";
 import { createInitialPhoneState } from "@/core";
-import { PhoneState } from "@/core";
-import { EventEmitter } from "@/core";
+import { PhoneState, EventEmitter } from "@/core";
 import { CountryCode } from "libphonenumber-js";
 import { getCountryCallingCode } from "libphonenumber-js/core";
 import metadata from "libphonenumber-js/metadata.min.json";
 import { ValidationReason } from "./core/validation/ValidationReason";
 
-interface IntlPhoneEvents {
+const digitRegex = /\D/g;
+
+export interface IntlPhoneEvents {
   change: PhoneState;
-  countryChange: CountryCode | null;
-  validityChange: boolean;
+  countryChange: PhoneState;
+  validityChange: PhoneState;
   blur: PhoneState;
 }
 
@@ -42,7 +43,7 @@ export class IntlPhone {
     this.bindInput();
     this.bindBlur();
 
-    this.setOptions(options, false); // do not auto-update yet
+    this.setOptions(options, false);
 
     if (this.options.value) {
       this.setValue(this.options.value);
@@ -53,7 +54,7 @@ export class IntlPhone {
 
   /* ========= CONFIG MANAGEMENT ========= */
 
-  public setOptions(options: IntlPhoneOptions, reprocess = true) {
+  public setOptions(options: IntlPhoneOptions, reprocess = true): void {
     this.options = { ...this.options, ...options };
 
     if (this.options.allowedCountries?.length) {
@@ -73,19 +74,19 @@ export class IntlPhone {
 
   /* ========= INPUT BINDING ========= */
 
-  private bindInput() {
+  private bindInput(): void {
     this.input.addEventListener("input", this.inputHandler);
   }
 
-  private bindBlur() {
+  private bindBlur(): void {
     this.input.addEventListener("blur", this.blurHandler);
   }
 
   /* ========= CORE UPDATE ========= */
 
-  private update(rawValue: string) {
+  private update(rawValue: string): void {
     const trimmed = rawValue.trim();
-    const digits = trimmed.replace(/\D/g, "");
+    const digits = trimmed.replace(digitRegex, "");
 
     const prevState = this.state;
 
@@ -96,11 +97,11 @@ export class IntlPhone {
       this.events.emit("change", this.state);
 
       if (prevState.country !== null) {
-        this.events.emit("countryChange", null);
+        this.events.emit("countryChange", this.state);
       }
 
       if (prevState.isValid !== false) {
-        this.events.emit("validityChange", false);
+        this.events.emit("validityChange", this.state);
       }
 
       return;
@@ -109,7 +110,6 @@ export class IntlPhone {
     const normalized = `+${digits}`;
     const result = processPhoneInput(normalized);
 
-    // Apply allowedCountries restriction
     if (
       this.allowedCountriesSet &&
       result.country &&
@@ -130,13 +130,11 @@ export class IntlPhone {
     const newDigitsCount = digits.length;
     const numberGrew = newDigitsCount > prevDigitsCount;
 
-    // 🔒 Block formatting regression
     if (numberGrew && prevState.formatted && currFormatting < prevFormatting) {
       this.input.value = prevState.formatted;
       return;
     }
 
-    // 🔒 Block impossible transition
     if (
       numberGrew &&
       prevState.country !== null &&
@@ -147,39 +145,67 @@ export class IntlPhone {
       return;
     }
 
-    // ✅ Update state
     this.state = result;
     this.input.value = result.formatted;
 
     this.events.emit("change", this.state);
 
     if (prevState.country !== result.country) {
-      this.events.emit("countryChange", result.country);
+      this.events.emit("countryChange", this.state);
     }
 
     if (prevState.isValid !== result.isValid) {
-      this.events.emit("validityChange", result.isValid);
+      this.events.emit("validityChange", this.state);
     }
+  }
+
+  /* ========= EVENTS ========= */
+
+  public on<K extends keyof IntlPhoneEvents>(
+    event: K,
+    listener: (payload: IntlPhoneEvents[K]) => void,
+  ): void {
+    this.events.on(event, listener);
+  }
+
+  public off<K extends keyof IntlPhoneEvents>(
+    event: K,
+    listener: (payload: IntlPhoneEvents[K]) => void,
+  ): void {
+    this.events.off(event, listener);
   }
 
   /* ========= PUBLIC API ========= */
 
-  public on = this.events.on.bind(this.events);
-  public off = this.events.off.bind(this.events);
+  public getInput(): HTMLInputElement {
+    return this.input;
+  }
+
+  public getValue(): string {
+    return this.state.value;
+  }
+
+  public getRawInput(): string {
+    return this.state.rawInput;
+  }
+
+  public getCallingCode(): string | null {
+    return this.state.callingCode;
+  }
 
   public getState(): PhoneState {
     return this.state;
   }
 
-  public getCountry() {
+  public getCountry(): CountryCode | null {
     return this.state.country;
   }
 
-  public isValid() {
+  public isValid(): boolean {
     return this.state.isValid;
   }
 
-  public getE164() {
+  public getE164(): string | null {
     return this.state.e164;
   }
 
@@ -215,13 +241,17 @@ export class IntlPhone {
     return ValidationReason.VALID;
   }
 
-  public setCountry(country: CountryCode) {
+  public setCountry(country: CountryCode): void {
+    if (this.allowedCountriesSet && !this.allowedCountriesSet.has(country)) {
+      return;
+    }
+
     const callingCode = getCountryCallingCode(country, metadata);
     this.update(`+${callingCode}`);
   }
 
-  public setValue(value: string) {
-    const digits = value.replace(/\D/g, "");
+  public setValue(value: string): void {
+    const digits = value.replace(digitRegex, "");
 
     if (!digits) {
       this.update("");
@@ -232,7 +262,7 @@ export class IntlPhone {
     this.update(normalized);
   }
 
-  public destroy() {
+  public destroy(): void {
     this.input.removeEventListener("input", this.inputHandler);
     this.input.removeEventListener("blur", this.blurHandler);
   }

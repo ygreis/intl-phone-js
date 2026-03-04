@@ -1,4 +1,4 @@
-import { IntlPhone } from "../src";
+import { IntlPhone, getAllCountriesWithNames } from "../src";
 import { ValidationReason } from "../src/core/validation/ValidationReason";
 import { CountryCode } from "libphonenumber-js";
 
@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!input || !container || !allowedInput || !applyBtn) return;
 
   const phone = new IntlPhone(input);
+
+  console.log("allCountries", getAllCountriesWithNames());
+  //console.log("getAvailableCountries", getCountryName(phone.));
 
   /* ========= APPLY CONFIG ========= */
 

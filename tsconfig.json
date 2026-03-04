@@ -5,7 +5,7 @@
     ========================== */
     "target": "ES2018",
     "module": "ESNext",
-    "lib": ["DOM", "ES2018"],
+    "lib": ["DOM", "ES2021", "ES2021.Intl"],
     "moduleResolution": "Node",
 
     /* =========================

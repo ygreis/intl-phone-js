@@ -27,7 +27,17 @@ describe("IntlPhone — core behavior", () => {
     expect(state.isPossible).toBe(true);
   });
 
-  it("should emit change event", () => {
+  it("should ignore setCountry when country is not allowed", () => {
+    const { phone } = createIntlPhone({
+      allowedCountries: ["US"],
+    });
+
+    phone.setCountry("BR");
+
+    expect(phone.getCountry()).not.toBe("BR");
+  });
+
+  it("should emit change event with PhoneState", () => {
     const { phone, input } = createIntlPhone();
     const mock = vi.fn();
 
@@ -36,6 +46,30 @@ describe("IntlPhone — core behavior", () => {
     typeInto(input, "5511999999999");
 
     expect(mock).toHaveBeenCalledTimes(1);
+
+    const state = mock.mock.calls[0][0];
+
+    expect(state.country).toBe("BR");
+    expect(state.isValid).toBe(true);
+  });
+
+  it("should emit events when resetting state", () => {
+    const { phone, input } = createIntlPhone();
+
+    const change = vi.fn();
+    const country = vi.fn();
+    const validity = vi.fn();
+
+    phone.on("change", change);
+    phone.on("countryChange", country);
+    phone.on("validityChange", validity);
+
+    typeInto(input, "5511999999999");
+    typeInto(input, "");
+
+    expect(change).toHaveBeenCalled();
+    expect(country).toHaveBeenCalled();
+    expect(validity).toHaveBeenCalled();
   });
 
   it("should emit countryChange", () => {
@@ -46,7 +80,8 @@ describe("IntlPhone — core behavior", () => {
 
     typeInto(input, "5511999999999");
 
-    expect(mock).toHaveBeenCalledWith("BR");
+    expect(mock).toHaveBeenCalled();
+    expect(mock.mock.calls[0][0].country).toBe("BR");
   });
 
   it("should emit validityChange when becoming valid", () => {
@@ -58,10 +93,13 @@ describe("IntlPhone — core behavior", () => {
     typeInto(input, "55119");
     typeInto(input, "5511999999999");
 
-    expect(mock).toHaveBeenCalledWith(true);
+    expect(mock).toHaveBeenCalled();
+
+    const lastCall = mock.mock.calls[mock.mock.calls.length - 1][0];
+    expect(lastCall.isValid).toBe(true);
   });
 
-  it("should emit blur event", () => {
+  it("should emit blur event with state", () => {
     const { phone, input } = createIntlPhone();
     const mock = vi.fn();
 
@@ -70,6 +108,7 @@ describe("IntlPhone — core behavior", () => {
     blur(input);
 
     expect(mock).toHaveBeenCalled();
+    expect(mock.mock.calls[0][0]).toHaveProperty("formatted");
   });
 
   it("should reset state when input becomes empty", () => {
@@ -151,5 +190,53 @@ describe("public API methods", () => {
     const { phone } = createIntlPhone();
 
     expect(phone.getValidationReason()).toBe(ValidationReason.EMPTY);
+  });
+
+  it("should return formatted value via getValue()", () => {
+    const { phone } = createIntlPhone();
+
+    phone.setValue("+5511999999999");
+
+    expect(phone.getValue()).toContain("+55");
+  });
+
+  it("should return raw input", () => {
+    const { phone, input } = createIntlPhone();
+
+    typeInto(input, "5511999999999");
+
+    expect(phone.getRawInput()).toBe("+5511999999999");
+  });
+
+  it("should return calling code", () => {
+    const { phone } = createIntlPhone();
+
+    phone.setValue("+5511999999999");
+
+    expect(phone.getCallingCode()).toBe("55");
+  });
+
+  it("should ignore setCountry if not allowed", () => {
+    const { phone } = createIntlPhone({
+      allowedCountries: ["US"],
+    });
+
+    phone.setCountry("BR");
+
+    expect(phone.getCountry()).not.toBe("BR");
+  });
+
+  it("should return input element", () => {
+    const { phone, input } = createIntlPhone();
+
+    expect(phone.getInput()).toBe(input);
+  });
+
+  it("should return formatted value via getValue()", () => {
+    const { phone } = createIntlPhone();
+
+    phone.setValue("+5511999999999");
+
+    expect(phone.getValue()).toContain("+55");
   });
 });
