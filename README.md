@@ -91,7 +91,7 @@ npm install @intl-phone-js/core
 
 ## Examples
 
-Browse the live examples home at [docs/examples/index.html](https://ygreis.github.io/intl-phone-js/example/).
+Browse the live examples home at [examples](https://ygreis.github.io/intl-phone-js/examples/).
 
 Current demos:
 
