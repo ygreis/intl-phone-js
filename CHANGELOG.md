@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/ygreis/intl-phone-js/compare/v0.2.0...v0.3.0) (2026-03-04)
+
+
+### Features
+
+* **core:** expand phone API, country helpers and browser bundles ([c293bd4](https://github.com/ygreis/intl-phone-js/commit/c293bd4118312cb5b084f49709c82174360bfee7))
+
 # [0.2.0](https://github.com/ygreis/intl-phone-js/compare/v0.1.12...v0.2.0) (2026-03-03)
 
 
