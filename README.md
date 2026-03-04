@@ -1,207 +1,234 @@
-# intl-phone-js
+# @intl-phone-js/core
 
-Headless international phone input engine with smart masking,
-validation\
-and automatic country detection powered by **libphonenumber-js**.
+Headless international phone input engine with smart masking, validation and automatic country detection powered by `libphonenumber-js`.
 
-Lightweight, framework-agnostic and built for modern web applications.
+Package: https://www.npmjs.com/package/@intl-phone-js/core
 
----
+## Summary
 
-## ✨ Features
+- Headless engine for international phone input formatting and validation.
+- Works with plain JS, TypeScript, bundlers, and direct browser usage.
+- Main install: `npm install @intl-phone-js/core`.
+- Also supports direct minified usage via `dist/index.global.min.js`.
+- Public helpers for country list and country names.
 
-- 🌍 International phone support (`+DDI` first approach)
-- 🧠 Automatic country detection while typing
-- 🎭 Smart formatting via `AsYouType`
-- 🔒 Structural overflow protection
-- 📡 Rich event system (`change`, `countryChange`, `validityChange`,
-  `blur`)
-- ⚙️ Runtime configuration (`setOptions`)
-- 🎯 Programmatic control (`setValue`, `setCountry`)
-- 🧩 Headless architecture (bring your own UI)
-- 🧪 Fully unit tested with high coverage
-- 🪶 Zero UI dependencies
+## Index
 
----
+- [Features](#features)
+- [Installation](#installation)
+- [Examples](#examples)
+- [Basic Usage](#basic-usage)
+- [Configuration](#configuration)
+- [Events](#events)
+- [Country Helpers](#country-helpers)
+- [Validation](#validation)
+- [Public API](#public-api)
+- [Headless Philosophy](#headless-philosophy)
+- [License](#license)
 
-## 📦 Installation
+## Features
+
+- International phone support (`+` first normalization)
+- Automatic country detection while typing
+- Smart formatting via `AsYouType`
+- Overflow/structural protection while typing
+- Typed events: `change`, `countryChange`, `validityChange`, `blur`
+- Runtime configuration (`setOptions`)
+- Programmatic control (`setValue`, `setCountry`)
+- Country helpers (`getAllCountries`, `getCountryName`, `getAllCountriesWithNames`)
+- Headless architecture (bring your own UI)
+
+## Installation
+
+<details open>
+<summary>npm (recommended)</summary>
 
 ```bash
 npm install @intl-phone-js/core
 ```
 
----
+</details>
 
-## 🚀 Basic Usage
+<details>
+<summary>CDN: direct minified global file (no bundler)</summary>
 
-```ts
-import { IntlPhone } from "intl-phone-js";
-
-const input = document.querySelector("#phone");
-
-const phone = new IntlPhone(input);
-
-phone.on("change", (state) => {
-  console.log("Formatted:", state.formatted);
-  console.log("E164:", state.e164);
-  console.log("Country:", state.country);
-  console.log("Valid:", state.isValid);
-});
+```html
+<script src="https://unpkg.com/@intl-phone-js/core/dist/index.global.min.js"></script>
+<script>
+  const input = document.getElementById("phone");
+  const phone = new IntlPhoneJS.IntlPhone(input);
+</script>
 ```
 
----
+</details>
 
-## 📄 Example HTML
+<details>
+<summary>npm + local minified file (from node_modules)</summary>
+
+```html
+<script src="./node_modules/@intl-phone-js/core/dist/index.global.min.js"></script>
+<script>
+  const input = document.getElementById("phone");
+  const phone = new IntlPhoneJS.IntlPhone(input);
+</script>
+```
+
+</details>
+
+<details>
+<summary>CDN: ESM module file</summary>
+
+```html
+<script type="module">
+  import { IntlPhone } from "https://unpkg.com/@intl-phone-js/core/dist/index.js";
+
+  const input = document.getElementById("phone");
+  const phone = new IntlPhone(input);
+</script>
+```
+
+</details>
+
+## Examples
+
+Browse the live examples home at [docs/examples/index.html](https://ygreis.github.io/intl-phone-js/example/).
+
+Current demos:
+
+- Debug Playground
+- Country Flag
+- Country Picker
+
+## Basic Usage
 
 ```html
 <input id="phone" type="text" />
 ```
 
-Typing:
+```ts
+import { IntlPhone } from "@intl-phone-js/core";
 
-    5511999999999
+const input = document.querySelector("#phone") as HTMLInputElement;
+const phone = new IntlPhone(input);
 
-Automatically becomes:
+phone.on("change", (state) => {
+  console.log("formatted:", state.formatted);
+  console.log("e164:", state.e164);
+  console.log("country:", state.country);
+  console.log("isValid:", state.isValid);
+});
+```
 
-    +55 11 99999-9999
+Typing `5511999999999` becomes `+55 11 99999-9999`.
 
-The engine always normalizes internally to international format.
-
----
-
-# ⚙️ Configuration
+## Configuration
 
 ```ts
 const phone = new IntlPhone(input, {
   allowedCountries: ["BR", "US"],
   value: "+5511999999999",
 });
-```
 
-Or dynamically:
-
-```ts
 phone.setOptions({
   allowedCountries: ["US"],
 });
+
+const options = phone.getOptions();
 ```
 
-Retrieve current options:
+## Events
+
+All events return the full `PhoneState` payload:
+
+- `change`: fires on every structural update
+- `countryChange`: fires when detected country changes
+- `validityChange`: fires when validity changes
+- `blur`: fires when the input loses focus
 
 ```ts
-phone.getOptions();
+phone.on("countryChange", (state) => {
+  console.log(state.country);
+});
 ```
 
----
+## Country Helpers
 
-# 📡 Available Events
+```ts
+import {
+  getAllCountries,
+  getCountryName,
+  getAllCountriesWithNames,
+} from "@intl-phone-js/core";
 
-Event Description
+const countries = getAllCountries();
+const name = getCountryName("BR"); // "Brazil"
+const countriesWithNames = getAllCountriesWithNames();
+```
 
----
-
-`change` Fires on every valid structural update
-`countryChange` Fires when detected country changes
-`validityChange` Fires when number becomes valid/invalid
-`blur` Fires when input loses focus
-
----
-
-# 🧠 Validation
+## Validation
 
 ```ts
 phone.isValid();
 phone.getValidationReason();
 ```
 
-### ValidationReason
+`ValidationReason` values:
 
-    EMPTY
-    INVALID_COUNTRY
-    TOO_SHORT
-    TOO_LONG
-    NOT_POSSIBLE
-    VALID
+- `EMPTY`
+- `INVALID_COUNTRY`
+- `TOO_SHORT`
+- `TOO_LONG`
+- `NOT_POSSIBLE`
+- `VALID`
 
-No opinionated error messages are included ---\
-the UI layer decides how to present validation.
+## Public API
 
----
-
-# 🔧 Public API
-
-### getState()
+### Types
 
 ```ts
-{
+type PhoneState = {
   rawInput: string;
   formatted: string;
+  value: string;
   country: string | null;
   callingCode: string | null;
   nationalNumber: string | null;
   e164: string | null;
   isValid: boolean;
   isPossible: boolean;
-}
+};
 ```
 
-### setValue(value)
+### IntlPhone methods
 
-```ts
-phone.setValue("+14155552671");
-```
+- `on(event, listener)`
+- `off(event, listener)`
+- `getInput()`
+- `getState()`
+- `getValue()`
+- `getRawInput()`
+- `getCountry()`
+- `getCallingCode()`
+- `getE164()`
+- `isValid()`
+- `getValidationReason()`
+- `setValue(value)`
+- `setCountry(countryCode)`
+- `setOptions(options, reprocess?)`
+- `getOptions()`
+- `destroy()`
 
-### setCountry(countryCode)
+## Headless Philosophy
 
-```ts
-phone.setCountry("BR");
-```
-
-### setOptions(options)
-
-```ts
-phone.setOptions({
-  allowedCountries: ["BR", "CA"],
-});
-```
-
-### destroy()
-
-```ts
-phone.destroy();
-```
-
----
-
-# 🔒 Overflow Protection
-
-The engine prevents invalid structural growth once the number becomes
-impossible.
-
----
-
-# 🧩 Headless Philosophy
-
-This library intentionally does **not** provide:
+This library intentionally does not provide:
 
 - UI components
 - Dropdowns
 - Flag icons
 - Styling
 
-You are free to integrate it into any UI layer.
+Use it with any UI layer.
 
----
-
-# 🧪 Testing & Reliability
-
-- Written in TypeScript
-- High test coverage
-- Powered by official libphonenumber metadata
-- Compatible with modern browsers (2018+)
-
----
-
-# 📜 License
+## License
 
 MIT

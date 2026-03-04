@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Country Flag Example | @intl-phone-js/core</title>
+    <script>
+      (() => {
+        const path = window.location.pathname;
+        const hasExtension = /\.[a-z0-9]+$/i.test(path);
+        const baseHref = hasExtension
+          ? path.slice(0, path.lastIndexOf("/") + 1)
+          : path.endsWith("/")
+            ? path
+            : `${path}/`;
+        const base = document.createElement("base");
+        base.href = baseHref;
+        document.head.appendChild(base);
+      })();
+    </script>
+    <script src="../assets/redirect.js"></script>
+    <script src="../assets/theme-init.js"></script>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body
+    data-page-title="Country Flag"
+    data-page-description="Use the countryChange event to update the detected country flag in real time."
+  >
+    <main>
+      <section class="hero">
+        <h2>Live country flag preview</h2>
+        <p>Type an international number and render the country flag as soon as the country is recognized.</p>
+      </section>
+
+      <section class="panel">
+        <div class="row input-with-preview">
+          <div>
+            <label for="intl-phone-js">Phone Input</label>
+            <input id="intl-phone-js" type="text" placeholder="Type: 5511999999999" />
+          </div>
+
+          <div>
+            <label for="flag-output">Detected Flag</label>
+            <div id="flag-output" class="flag-preview is-empty">Waiting for country</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Copy and paste</h2>
+        <p>Use the snippets below in your own project.</p>
+        <div id="snippet-list" class="code-snippet-list"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { bootDocsPage } from "../assets/page.js";
+      bootDocsPage();
+    </script>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>

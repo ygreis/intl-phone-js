@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug Example | @intl-phone-js/core</title>
+    <script>
+      (() => {
+        const path = window.location.pathname;
+        const hasExtension = /\.[a-z0-9]+$/i.test(path);
+        const baseHref = hasExtension
+          ? path.slice(0, path.lastIndexOf("/") + 1)
+          : path.endsWith("/")
+            ? path
+            : `${path}/`;
+        const base = document.createElement("base");
+        base.href = baseHref;
+        document.head.appendChild(base);
+      })();
+    </script>
+    <script src="../assets/redirect.js"></script>
+    <script src="../assets/theme-init.js"></script>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body data-page-title="Debug Playground" data-page-description="Type phone numbers and inspect state, validation, and options in real time.">
+    <main>
+      <section class="hero">
+        <h2>Live test console</h2>
+        <p>Use this page to validate behavior while developing new features.</p>
+      </section>
+
+      <section class="panel">
+        <div class="row">
+          <label for="intl-phone-js">Phone Input</label>
+          <input id="intl-phone-js" type="text" placeholder="Type: 5511999999999" />
+        </div>
+
+        <div class="row">
+          <label for="allowed-input">Allowed Countries (comma separated, e.g. BR,US,CA)</label>
+          <input id="allowed-input" type="text" placeholder="BR,US" />
+        </div>
+
+        <button id="apply-config" type="button">Apply Config</button>
+      </section>
+
+      <section id="container-output" class="panel"></section>
+    </main>
+
+    <script type="module">
+      import { bootDocsPage } from "../assets/page.js";
+      bootDocsPage();
+    </script>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>
