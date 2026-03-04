@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/ygreis/intl-phone-js/compare/v0.4.0...v0.5.0) (2026-03-04)
+
+
+### Features
+
+* **docs:** add examples hub and interactive docs demos ([fcfb6a6](https://github.com/ygreis/intl-phone-js/commit/fcfb6a6dd4a6f221beb3fa93429e116843c0b1b3))
+
 # [0.4.0](https://github.com/ygreis/intl-phone-js/compare/v0.3.0...v0.4.0) (2026-03-04)
 
 
