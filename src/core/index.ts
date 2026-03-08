@@ -1,5 +1,6 @@
 export { processPhoneInput } from "./engine/phoneEngine";
 export { createInitialPhoneState } from "./state/createPhoneState";
+export { applyClampedValue } from "./guards/applyClampedValue";
 export { getAllCountries } from "./country/countryRegistry";
 export { getCountryName, getAllCountriesWithNames } from "./country/countryName";
 export { ValidationReason } from "./validation/ValidationReason";

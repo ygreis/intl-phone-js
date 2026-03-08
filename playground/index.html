@@ -86,11 +86,22 @@
   </head>
 
   <body>
-    <h2>📱 IntlPhoneCore Playground</h2>
+    <h2>IntlPhoneCore Playground</h2>
     <p class="muted">Manual debug page for the headless core.</p>
 
     <div class="section">
-      <h3>⚙️ Config</h3>
+      <h3>Value</h3>
+
+      <label for="raw-input">Raw Value</label>
+      <input type="text" id="raw-input" placeholder="+5511999999999" />
+
+      <div class="actions">
+        <button id="apply-raw-value">Apply clamped value</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Config</h3>
 
       <label for="allowed-input">Allowed Countries (example: BR,US,CA)</label>
       <input type="text" id="allowed-input" placeholder="BR,US,CA" />

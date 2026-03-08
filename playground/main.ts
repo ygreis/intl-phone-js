@@ -1,14 +1,32 @@
-import { IntlPhoneCore, getAllCountriesWithNames } from "../src";
+import {
+  applyClampedValue,
+  getAllCountriesWithNames,
+  IntlPhoneCore,
+} from "../src";
 import { CountryCode } from "libphonenumber-js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.querySelector<HTMLDivElement>("#container-output");
+  const rawInput = document.querySelector<HTMLInputElement>("#raw-input");
+  const applyRawBtn =
+    document.querySelector<HTMLButtonElement>("#apply-raw-value");
   const allowedInput =
     document.querySelector<HTMLInputElement>("#allowed-input");
-  const applyBtn = document.querySelector<HTMLButtonElement>("#apply-config");
-  const clearBtn = document.querySelector<HTMLButtonElement>("#clear-config");
+  const applyConfigBtn =
+    document.querySelector<HTMLButtonElement>("#apply-config");
+  const clearConfigBtn =
+    document.querySelector<HTMLButtonElement>("#clear-config");
 
-  if (!container || !allowedInput || !applyBtn || !clearBtn) return;
+  if (
+    !container ||
+    !rawInput ||
+    !applyRawBtn ||
+    !allowedInput ||
+    !applyConfigBtn ||
+    !clearConfigBtn
+  ) {
+    return;
+  }
 
   const phone = new IntlPhoneCore();
 
@@ -25,9 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return parsed.length ? parsed : undefined;
   };
 
-  const render = (): void => {
-    const state = phone.getState();
-
+  const render = (state = phone.getState()): void => {
     container.innerHTML = `
       <h3>Debug</h3>
 
@@ -41,9 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <button id="reset-phone">reset()</button>
       </div>
 
-      <p><strong>Formatted:</strong> ${state.formatted || "—"}</p>
-      <p><strong>Raw Input:</strong> ${state.rawInput || "—"}</p>
-      <p><strong>Value:</strong> ${state.value || "—"}</p>
+      <p><strong>Formatted:</strong> ${state.formatted || "-"}</p>
+      <p><strong>Raw Input:</strong> ${state.rawInput || "-"}</p>
+      <p><strong>Value:</strong> ${state.value || "-"}</p>
       <p><strong>Country:</strong> ${state.country ?? "null"}</p>
       <p><strong>Calling Code:</strong> ${state.callingCode ?? "null"}</p>
       <p><strong>National Number:</strong> ${state.nationalNumber ?? "null"}</p>
@@ -61,33 +77,27 @@ document.addEventListener("DOMContentLoaded", () => {
       <pre>${JSON.stringify(state, null, 2)}</pre>
     `;
 
+    const applyAndRender = (value: string) => {
+      const nextState = applyClampedValue(phone, value);
+      rawInput.value = value;
+      render(nextState);
+    };
+
     document
       .querySelector<HTMLButtonElement>("#set-br-local")
-      ?.addEventListener("click", () => {
-        phone.setValue("11999999999");
-        render();
-      });
+      ?.addEventListener("click", () => applyAndRender("11999999999"));
 
     document
       .querySelector<HTMLButtonElement>("#set-br-intl")
-      ?.addEventListener("click", () => {
-        phone.setValue("+5511999999999");
-        render();
-      });
+      ?.addEventListener("click", () => applyAndRender("+5511999999999"));
 
     document
       .querySelector<HTMLButtonElement>("#set-us")
-      ?.addEventListener("click", () => {
-        phone.setValue("+12025550123");
-        render();
-      });
+      ?.addEventListener("click", () => applyAndRender("+12025550123"));
 
     document
       .querySelector<HTMLButtonElement>("#set-pt")
-      ?.addEventListener("click", () => {
-        phone.setValue("+351912345678");
-        render();
-      });
+      ?.addEventListener("click", () => applyAndRender("+351912345678"));
 
     document
       .querySelector<HTMLButtonElement>("#set-country-br")
@@ -107,17 +117,23 @@ document.addEventListener("DOMContentLoaded", () => {
       .querySelector<HTMLButtonElement>("#reset-phone")
       ?.addEventListener("click", () => {
         phone.reset();
+        rawInput.value = "";
         render();
       });
   };
 
-  applyBtn.addEventListener("click", () => {
+  applyRawBtn.addEventListener("click", () => {
+    const nextState = applyClampedValue(phone, rawInput.value);
+    render(nextState);
+  });
+
+  applyConfigBtn.addEventListener("click", () => {
     const allowedCountries = parseAllowedCountries(allowedInput.value);
     phone.setOptions({ allowedCountries });
     render();
   });
 
-  clearBtn.addEventListener("click", () => {
+  clearConfigBtn.addEventListener("click", () => {
     allowedInput.value = "";
     phone.setOptions({ allowedCountries: undefined });
     render();

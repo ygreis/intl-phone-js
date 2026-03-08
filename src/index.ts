@@ -1,4 +1,5 @@
 export { IntlPhoneCore } from "./IntlPhoneCore";
+export { applyClampedValue } from "./core/guards/applyClampedValue";
 export { getAllCountries } from "./core/country/countryRegistry";
 export {
   getCountryName,
