@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Debug Example | @intl-phone-js/core</title>
+    <title>Core Debug | @intl-phone-js/core</title>
     <script>
       (() => {
         const path = window.location.pathname;
@@ -22,25 +22,34 @@
     <script src="../assets/theme-init.js"></script>
     <link rel="stylesheet" href="../assets/styles.css" />
   </head>
-  <body data-page-title="Debug Playground" data-page-description="Type phone numbers and inspect state, validation, and options in real time.">
+  <body
+    data-page-title="Core Debug"
+    data-page-description="Inspect IntlPhoneCore state and run core operations manually."
+  >
     <main>
       <section class="hero">
-        <h2>Live test console</h2>
-        <p>Use this page to validate behavior while developing new features.</p>
+        <h2>Headless Core Inspector</h2>
+        <p>Run core methods manually and inspect state snapshots.</p>
       </section>
 
       <section class="panel">
         <div class="row">
-          <label for="intl-phone-js">Phone Input</label>
-          <input id="intl-phone-js" type="text" placeholder="Type: 5511999999999" />
-        </div>
-
-        <div class="row">
-          <label for="allowed-input">Allowed Countries (comma separated, e.g. BR,US,CA)</label>
+          <label for="allowed-input">Allowed Countries (comma separated, e.g. BR,US)</label>
           <input id="allowed-input" type="text" placeholder="BR,US" />
         </div>
 
-        <button id="apply-config" type="button">Apply Config</button>
+        <div
+          class="row"
+          style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem;"
+        >
+          <button id="apply-config" type="button">Apply Config</button>
+          <button id="clear-config" type="button">Clear Config</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Actions</h3>
+        <div id="actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;"></div>
       </section>
 
       <section id="container-output" class="panel"></section>
@@ -50,6 +59,6 @@
       import { bootDocsPage } from "../assets/page.js";
       bootDocsPage();
     </script>
-    <script type="module" src="./index.js"></script>
+    <script type="module" src="./main.js"></script>
   </body>
 </html>
