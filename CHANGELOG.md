@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/ygreis/intl-phone-js/compare/v0.6.1...v0.7.0) (2026-03-08)
+
+
+### Features
+
+* public version 0.7 ([c62ca35](https://github.com/ygreis/intl-phone-js/commit/c62ca354e19381c0b5b3971bbd3446c521fdd12a))
+
 ## [0.6.1](https://github.com/ygreis/intl-phone-js/compare/v0.6.0...v0.6.1) (2026-03-08)
 
 ### Bug Fixes

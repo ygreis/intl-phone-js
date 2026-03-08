@@ -1,6 +1,6 @@
 {
   "name": "@intl-phone-js/core",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Headless international phone input engine with smart masking, validation and country auto-detection powered by libphonenumber-js.",
   "license": "MIT",
   "author": "ygreis",
