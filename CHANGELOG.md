@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/ygreis/intl-phone-js/compare/v0.5.0...v0.6.0) (2026-03-08)
+
+
+### Features
+
+* refactor library to headless IntlPhoneCore ([ae61ed9](https://github.com/ygreis/intl-phone-js/commit/ae61ed968210200a6074f15a218c9b78ec332ee6))
+
 # [0.5.0](https://github.com/ygreis/intl-phone-js/compare/v0.4.0...v0.5.0) (2026-03-04)
 
 
