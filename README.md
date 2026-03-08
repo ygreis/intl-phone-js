@@ -5,6 +5,7 @@
 It is built on top of `libphonenumber-js`, a widely used JavaScript implementation inspired by Google's libphonenumber.
 
 NPM: https://www.npmjs.com/package/@intl-phone-js/core
+Official docs: https://ygreis.github.io/dev-hub/lib/intl-phone-js-core
 
 ---
 
@@ -25,6 +26,19 @@ NPM: https://www.npmjs.com/package/@intl-phone-js/core
 - Country helpers
 - Runtime configuration
 - Framework agnostic
+
+---
+
+# Documentation
+
+- Official documentation: https://ygreis.github.io/dev-hub/lib/intl-phone-js-core
+
+## Framework Integrations
+
+- React: https://ygreis.github.io/dev-hub/lib/intl-phone-js-core/docs/framework-integrations/react
+- React Native: https://ygreis.github.io/dev-hub/lib/intl-phone-js-core/docs/framework-integrations/react-native
+- Vue: https://ygreis.github.io/dev-hub/lib/intl-phone-js-core/docs/framework-integrations/vue
+- Angular: https://ygreis.github.io/dev-hub/lib/intl-phone-js-core/docs/framework-integrations/angular
 
 ---
 
