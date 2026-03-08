@@ -1,3 +1,10 @@
+## [0.6.1](https://github.com/ygreis/intl-phone-js/compare/v0.6.0...v0.6.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **core:** clamp semantic parsing regressions in applyClampedValue ([f3cd06d](https://github.com/ygreis/intl-phone-js/commit/f3cd06de19067101440e4214ac2e6bd5006e57ba))
+
 # [0.6.0](https://github.com/ygreis/intl-phone-js/compare/v0.5.0...v0.6.0) (2026-03-08)
 
 
